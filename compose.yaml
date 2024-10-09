@@ -1,8 +1,8 @@
 version: "3.8"
 services:
 
-  tiktok-api-image:
-    image: tiktok-api-image
+  tiktik-live:
+    image: tiktik-live
     container_name: tiktok-api-container
     build:
       context: .
