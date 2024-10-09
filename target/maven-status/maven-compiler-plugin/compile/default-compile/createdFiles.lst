@@ -1,0 +1,6 @@
+CustomizationExample.class
+com\lega\bottiktok\BotTiktokApplication.class
+comment.class
+com\lega\bottiktok\controller\TikTokLiveController.class
+com\lega\bottiktok\service\TikTokLiveService.class
+CustomizationExample$CustomEventsHandler.class

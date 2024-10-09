@@ -1,0 +1,19 @@
+Index: src/main/java/comment.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import io.github.jwdeveloper.tiktok.TikTokLive;\r\n\r\npublic class comment {\r\n    public static void main(String[] args) {\r\n        TikTokLive.newClient(\"spamsitoh.trs\")\r\n                .onComment((liveClient, event) ->\r\n                        System.out.println(  event.getText()  ))\r\n                .buildAndConnect();\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/comment.java b/src/main/java/comment.java
+--- a/src/main/java/comment.java	(revision 2574db28d268c9ad86b79547a9a458d209240f33)
++++ b/src/main/java/comment.java	(date 1728500278741)
+@@ -2,7 +2,7 @@
+ 
+ public class comment {
+     public static void main(String[] args) {
+-        TikTokLive.newClient("spamsitoh.trs")
++        TikTokLive.newClient("papivisen")
+                 .onComment((liveClient, event) ->
+                         System.out.println(  event.getText()  ))
+                 .buildAndConnect();

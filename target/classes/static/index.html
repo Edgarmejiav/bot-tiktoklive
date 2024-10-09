@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comentarios del Live</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(182deg, #3498db, #8e44ad);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 80%;
+            max-width: 600px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.1);
+        }
+        #comments-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #comments-list li {
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        #comments-list li:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Estilizar la barra de desplazamiento */
+        #comments-list::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #comments-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        #comments-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        #comments-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Estilo del input y botón */
+        .input-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        input[type="text"] {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            flex-grow: 1;
+            margin-right: 0.5rem;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Comentarios del Live</h1>
+    <div class="input-container">
+        <input type="text" id="name-input" placeholder="Ingresa el nombre" />
+        <button id="start-button">Iniciar</button>
+    </div>
+    <ul id="comments-list">
+        <!-- Los comentarios se agregarán aquí dinámicamente -->
+    </ul>
+</div>
+
+<script>
+    let synth = window.speechSynthesis;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function getComments(name) {
+        try {
+            const eventSource = new EventSource(`http://localhost:8090/comments/${name}`);
+
+            eventSource.onmessage = function (event) {
+                addComment(event.data);
+            };
+
+            eventSource.onerror = function (err) {
+                console.log('EventSource failed, using fallback data');
+                eventSource.close();
+                useFallbackData();
+            };
+        } catch (error) {
+            console.log('Error creating EventSource, using fallback data');
+            useFallbackData();
+        }
+    }
+
+    function useFallbackData() {
+        const fallbackComments = [
+            "La aplicación está DESCONECTADA",
+        ];
+
+        fallbackComments.forEach((comment, index) => {
+            setTimeout(() => addComment(comment), index * 3000);
+        });
+    }
+
+    function addComment(comment) {
+        const commentsList = document.getElementById('comments-list');
+        const listItem = document.createElement('li');
+        listItem.textContent = comment;
+
+        commentsList.appendChild(listItem);
+        speech(comment);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        const commentsList = document.getElementById('comments-list');
+        commentsList.scrollTop = commentsList.scrollHeight;
+    }
+
+    document.getElementById('start-button').onclick = function() {
+        const nameInput = document.getElementById('name-input');
+        const name = nameInput.value.trim(); // Obtener el valor del input y quitar espacios
+
+        if (name) {
+            getComments(name); // Llamar a getComments con el nombre ingresado
+            nameInput.value = ''; // Limpiar el input
+        } else {
+            alert('Por favor, ingresa un nombre.');
+        }
+    };
+
+    function speech(text) {
+        if (voices.length === 0) {
+            loadVoices();
+        }
+        const utterThis = new SpeechSynthesisUtterance(text);
+        utterThis.voice = voices[0];
+
+        synth.speak(utterThis);
+    }
+</script>
+</body>
+</html>
