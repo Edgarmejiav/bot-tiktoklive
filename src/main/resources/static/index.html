@@ -15,6 +15,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .container {
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(10px);
@@ -28,13 +29,15 @@
             display: flex;
             flex-direction: column;
         }
+
         h1 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 1.5rem;
             font-size: 2rem;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.1);
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.1);
         }
+
         #comments-list {
             list-style-type: none;
             padding: 0;
@@ -57,11 +60,10 @@
 
         #comments-list li:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* Estilizar la barra de desplazamiento */
         #comments-list::-webkit-scrollbar {
             width: 10px;
         }
@@ -80,7 +82,6 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-        /* Estilo del input y botón */
         .input-container {
             display: flex;
             justify-content: center;
@@ -107,23 +108,41 @@
         button:hover {
             background-color: #2980b9;
         }
+        #disconnectAll {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #e74c3c;
+            color: white;
+            cursor: pointer;
+            margin-bottom:1rem;
+        }
+        #start-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>Comentarios del Live</h1>
+    <button id="disconnectAll" hidden="hidden">
+        reiniciar
+    </button>
+
     <div class="input-container">
-        <input type="text" id="name-input" placeholder="Ingresa el nombre" />
+        <input type="text" id="name-input" placeholder="Ingresa el nombre"/>
         <button id="start-button">Iniciar</button>
     </div>
-    <ul id="comments-list">
-        <!-- Los comentarios se agregarán aquí dinámicamente -->
-    </ul>
+    <ul id="comments-list"></ul>
 </div>
-
 <script>
+
+    let URL = window.location.href ?? 'http://localhost:8090/';
     let synth = window.speechSynthesis;
     let voices = [];
+    let hostname = "";
+    let eventSource; // Declarar EventSource aquí
 
     function loadVoices() {
         voices = synth.getVoices();
@@ -135,33 +154,56 @@
 
     function getComments(name) {
         try {
-            const eventSource = new EventSource(`http://localhost:8090/comments/${name}`);
+            if (eventSource) {
+                console.log("Cerrando EventSource anterior...");
+                eventSource.close();
+            }
 
+            console.log("Conectando a TikTok con el nombre:", name);
+            console.log("URL de conexión:", `${URL}comments/${name}`);
+
+            eventSource = new EventSource(`${URL}comments/${name}`);
+            addComment(`Conectado a TikTok: ${name}`);
             eventSource.onmessage = function (event) {
                 addComment(event.data);
             };
 
             eventSource.onerror = function (err) {
-                console.log('EventSource failed, using fallback data');
+                console.log('EventSource falló, usando datos de respaldo', err);
                 eventSource.close();
-                useFallbackData();
             };
         } catch (error) {
-            console.log('Error creating EventSource, using fallback data');
-            useFallbackData();
+            console.log('Error al crear EventSource, usando datos de respaldo', error);
         }
     }
 
-    function useFallbackData() {
-        const fallbackComments = [
-            "La aplicación está DESCONECTADA",
-        ];
+    // function disconnectFromTikTok(name) {
+    //     console.log("Desconectando de TikTok... " + name);
+    //     if (!name || typeof name !== 'string') {
+    //         console.error("El nombre no puede estar vacío o no es una cadena válida.");
+    //         return;
+    //     }
+    //
+    //     const url = `${URL}disconnect/${name}`;
+    //     console.log("URL de desconexión:", url);
+    //
+    //     fetch(url)
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 throw new Error("Error en la desconexión: " + response.statusText);
+    //             }
+    //             addComment(`Desconectado de TikTok: ${name}`);
+    //             return response.text();
+    //         })
+    //         .then(data => {
+    //             console.log(data);
+    //         })
+    //         .catch(error => {
+    //             console.error("Error:", error);
+    //         });
+    // }
 
-        fallbackComments.forEach((comment, index) => {
-            setTimeout(() => addComment(comment), index * 3000);
-        });
-    }
-
+    // Función para agregar un comentario a la lista
     function addComment(comment) {
         const commentsList = document.getElementById('comments-list');
         const listItem = document.createElement('li');
@@ -172,23 +214,59 @@
         scrollToBottom();
     }
 
+    // Función para desplazar la lista de comentarios hacia abajo
     function scrollToBottom() {
         const commentsList = document.getElementById('comments-list');
         commentsList.scrollTop = commentsList.scrollHeight;
     }
 
-    document.getElementById('start-button').onclick = function() {
+    // Evento al hacer clic en el botón de inicio
+    document.getElementById('start-button').onclick = function () {
+
         const nameInput = document.getElementById('name-input');
-        const name = nameInput.value.trim(); // Obtener el valor del input y quitar espacios
+        const name = nameInput.value.trim();
+        hostname = name;
+
+
 
         if (name) {
-            getComments(name); // Llamar a getComments con el nombre ingresado
-            nameInput.value = ''; // Limpiar el input
+            document.getElementById('disconnectAll').hidden = false;
+            document.getElementById('start-button').disabled = true;
+            getComments(name); // Obtener comentarios del nuevo
+            nameInput.value = '';
         } else {
             alert('Por favor, ingresa un nombre.');
         }
     };
+    function disconnectAll() {
+        const url = `${URL}disconnect/all`;
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error en la desconexión: " + response.statusText);
+                }
+                document.getElementById('comments-list').innerHTML = '';
+                synth.cancel();
+                document.getElementById('start-button').disabled = false;
+                document.getElementById('disconnectAll').hidden = true;
+                addComment(`Desconectado de TikTok: ${hostname}`);
+                return response.text();
+            })
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+    }
 
+    // Ejecutar la desconexión al cargar la página
+    window.onload = disconnectAll;
+
+    // Asignar la función al botón de desconectar
+    document.getElementById('disconnectAll').onclick = disconnectAll;
+
+    // Función para sintetizar voz
     function speech(text) {
         if (voices.length === 0) {
             loadVoices();
@@ -199,5 +277,6 @@
         synth.speak(utterThis);
     }
 </script>
+
 </body>
 </html>
