@@ -7,7 +7,7 @@ Welcome to **bot-tiktoklive** 🎉, a Spring Boot service that interacts with Ti
 ![GitHub forks](https://img.shields.io/github/forks/Edgarmejiav/bot-tiktoklive)
 ![GitHub PRs](https://img.shields.io/github/issues-pr/Edgarmejiav/bot-tiktoklive)
 ## captures
-![image](https://github.com/user-attachments/assets/665cad33-dc26-47ee-89e8-2686a735b502)
+![tiktoklive](https://github.com/user-attachments/assets/67496981-4406-4de2-bf65-4164940cb0dd)
 
 ## Features
 
