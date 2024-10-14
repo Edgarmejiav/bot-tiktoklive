@@ -2,10 +2,10 @@ version: "3.8"
 services:
 
   tiktik-live:
-    image: tiktik-live
-    container_name: tiktok-api-container
+    image: tiktok-image
+    container_name: tiktok-container
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8090:8090"
+      - "8190:8190"
